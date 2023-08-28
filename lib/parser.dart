@@ -7,12 +7,16 @@ import "dart:core";
 final Random r = Random();
 
 class LightshotParser{
-  late final _possibleSymbolsInOldUrl = "qwertyuiopasdfghjklzxcvbnm123456789";
-  late final _possibleSymbolsInNewUrl = "_QWERTYUIOPASDFGHJKLZXCVBNM-$_possibleSymbolsInOldUrl";
+  late final _possibleSymbolsInOldUrl =
+      "qwertyuiopasdfghjklzxcvbnm1234567890";
+  late final _possibleSymbolsInNewUrl =
+      "_QWERTYUIOPASDFGHJKLZXCVBNM-$_possibleSymbolsInOldUrl";
   HttpClient client = HttpClient();
   LightshotParser() {
     client.userAgent =
         'Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0';
+    var photos = Directory("Photos");
+    if (!photos.existsSync()){photos.create();}
   }
 
   getImage(Uri url) async{
@@ -43,16 +47,14 @@ class LightshotParser{
       var imageUrl = Uri.parse(imageStringUrl);
       final responseFromImg = await http.get(imageUrl);
       if (responseFromImg.statusCode != 200){
-        throw Exception("The photo is missing with ${responseFromImg.statusCode}");
+        throw Exception(
+            "The photo is missing with ${responseFromImg.statusCode}"
+        );
       }
-      await File('Photos/${imageUrl.pathSegments[imageUrl.pathSegments.length - 1]}')
-          .writeAsBytes(responseFromImg.bodyBytes);
+      await File(
+          'Photos/${imageUrl.pathSegments[imageUrl.pathSegments.length - 1]}'
+      ).writeAsBytes(responseFromImg.bodyBytes);
 
-      // http.get(imageUrl).then((response) {
-      //   File(
-      //       'Photos/${imageUrl.pathSegments[imageUrl.pathSegments.length - 1]}'
-      //   ).writeAsBytes(response.bodyBytes);
-      // });
       print('file $imageStringUrl downloaded successful');
       return 1;
     } catch(e) {
@@ -67,7 +69,7 @@ class LightshotParser{
     late String stringUrl;
 
     String getRandomString(int length) => String.fromCharCodes(Iterable.generate(
-        length, (_) => usingSymbols.codeUnitAt(r.nextInt(usingSymbols.length))));
+        length, (index) => usingSymbols.codeUnitAt(r.nextInt(usingSymbols.length))));
 
     stringUrl = getRandomString(numberOfSymbols);
 
