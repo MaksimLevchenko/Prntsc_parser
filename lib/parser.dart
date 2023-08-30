@@ -7,16 +7,16 @@ import "dart:core";
 class LightshotParser{
   HttpClient client = HttpClient();
 
-
   LightshotParser() {
+    // It is necessary in order not to be banned immediately
     client.userAgent =
-        'Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0'; // It is necessary in order not to be banned immediately
+        'Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101 Firefox/78.0';
     var photos = Directory("Photos");
-    if (!photos.existsSync()) photos.create();                                  // Create photos directory if it s missing
+    if (!photos.existsSync()) photos.create();
 
   }
 
-
+  ///downloading image from prnt.sc url
   getImage(Uri url) async{
     try {
       final responseFromSite = await http.get(url);
@@ -27,16 +27,18 @@ class LightshotParser{
         throw Exception('Can\'t reach server : ${responseFromSite.statusCode}');
       }
 
-      var imageStringUrl = imgPattern.stringMatch(sourceCode);                  //looking for a direct address to the photo
+      //looking for a direct address to the file
+      var imageStringUrl = imgPattern.stringMatch(sourceCode);
 
       if (imageStringUrl == null) {
         throw Exception("The photo is missing");
       }
 
+      //Cutting the image url after .jpg or .png
       imageStringUrl = imageStringUrl.substring(
           0,
           imageStringUrl.indexOf('"')
-      );                                                                        //Cutting the image url after .jpg or .png
+      );
 
       if (!imageStringUrl.contains(imgPattern)) {
         throw Exception("The photo is missing");
@@ -50,14 +52,17 @@ class LightshotParser{
             "The photo is missing with ${responseFromImg.statusCode}"
         );
       }
-      if (responseFromImg.bodyBytes.length == 503) {                            //We filter out the imgur stubs that have 503 bites size
+
+      //We filter out the imgur stubs that have 503 bites size
+      if (responseFromImg.bodyBytes.length == 503) {
         throw Exception(
             "The photo $imageStringUrl is imgur stub"
         );
       }
 
+      //Download the photo
       await File(
-          'Photos/${imageUrl.pathSegments[imageUrl.pathSegments.length - 1]}'   //Download the photo
+          'Photos/${imageUrl.pathSegments[imageUrl.pathSegments.length - 1]}'
       ).writeAsBytes(responseFromImg.bodyBytes);
 
       print('file $imageStringUrl from $url downloaded successful');
@@ -68,23 +73,32 @@ class LightshotParser{
     }
   }
 
+  /// Start parsing
+  ///
+  /// Downloads numOfPhotos in new if newAddresses urls
+  /// starting from startingUrl. If startingUrl == '' uses random Url generator
+  /// otherwise - contractor Url generator
   void parse(
-      int numOfPhotos,
-      {bool newAddresses = false, String startingUrl = ''})
-  async {
+    { int numOfPhotos = 100,
+      bool newAddresses = false,
+      String startingUrl = ''}
+      ) async {
     var getUrl = startingUrl == ''
         ? GetRandomUrl(newAddresses)
         : GetNextUrl(newAddresses, startingUrl);
+
+    // delay is necessary in order not to be banned
     for (num i = 0; i < numOfPhotos;){
-      getUrl.moveNext();
       i += await getImage(getUrl.current);
-      await Future.delayed(Duration(milliseconds: 70));                         // It is necessary in order not to be banned
+      getUrl.moveNext();
+      await Future.delayed(Duration(milliseconds: 70));
     }
     print("Successfully downloaded $numOfPhotos photos");
   }
 }
 
 
+/// Generates contractor Urls starting from stringUrl
 class GetNextUrl implements Iterator<Uri>{
   late bool newAddresses;
   late final String _possibleSymbolsInOldUrl;
@@ -93,7 +107,6 @@ class GetNextUrl implements Iterator<Uri>{
   late final int _numberOfSymbols;
   late List<int> _charsNumbers;
   late String _stringUrl;
-  late Uri url;
 
   GetNextUrl([this.newAddresses = false, stringUrl]){
     _possibleSymbolsInOldUrl = "abcdefghijklmnopqrstuvwxyz1234567890";
@@ -109,15 +122,8 @@ class GetNextUrl implements Iterator<Uri>{
     _charsNumbers = charsFromString(_stringUrl);
   }
 
-  List<int> charsFromString(String stringUrl){
-    List<int> result = List<int>.generate(
-        _numberOfSymbols
-        , (index) => _usingSymbols.indexOf(stringUrl[index]));
-    return result;
-  }
-
   @override
-  Uri get current => url;
+  Uri get current => Uri.parse("https://prnt.sc/$_stringUrl");
 
   @override bool moveNext(){
     _stringUrl = '';
@@ -129,11 +135,20 @@ class GetNextUrl implements Iterator<Uri>{
       }
       _stringUrl += _usingSymbols[_charsNumbers[i]];                            //Adding the characters corresponding to the numbers to the stringUrl
     }
-    url = Uri.parse("https://prnt.sc/$_stringUrl");
     return true;
   }
+
+  List<int> charsFromString(String stringUrl){
+    List<int> result = List<int>.generate(
+        _numberOfSymbols
+        , (index) => _usingSymbols.indexOf(stringUrl[index]));
+    return result;
+  }
+
 }
 
+
+///Generates random Url
 class GetRandomUrl implements Iterator<Uri>{
   late bool newAddresses;
   late final String _possibleSymbolsInOldUrl;
@@ -141,7 +156,6 @@ class GetRandomUrl implements Iterator<Uri>{
   late final String _usingSymbols;
   late final int _numberOfSymbols;
   late String _stringUrl;
-  late Uri url;
 
   GetRandomUrl([this.newAddresses = false]){
     _possibleSymbolsInOldUrl = "abcdefghijklmnopqrstuvwxyz1234567890";
@@ -150,18 +164,18 @@ class GetRandomUrl implements Iterator<Uri>{
         ? _possibleSymbolsInNewUrl
         : _possibleSymbolsInOldUrl;
     _numberOfSymbols = newAddresses ? 12 : 6;
+    _stringUrl = getRandomString(_numberOfSymbols);
   }
 
   String getRandomString(int length) => String.fromCharCodes(Iterable.generate
     (length, (_) => _usingSymbols.codeUnitAt(Random().nextInt(_usingSymbols.length))));
 
   @override
-  Uri get current => url;
+  Uri get current => Uri.parse("https://prnt.sc/$_stringUrl");
 
   @override
   bool moveNext(){
     _stringUrl = getRandomString(_numberOfSymbols);
-    url = Uri.parse("https://prnt.sc/$_stringUrl");
     return true;
   }
 }

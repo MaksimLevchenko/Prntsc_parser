@@ -5,9 +5,9 @@ This Dart script is designed to automate the process of downloading screenshots 
 ### How to Use
 
 Use the parse method of the LightshotParser instance to start the process.
-    50: Specify the number of screenshots you want to download.
-    newAddresses: false: Set this flag to true if you want to parse new addresses with 12 characters instead of the default 6. In this example, it's set to false.
-    startingUrl: 'aaaaaa': Define the starting URL for parsing. If omitted, the script will use a random URL generator. In this example, it's set to 'aaaaaa'.
+    numOfPhotos: Specify the number of screenshots you want to download.
+    newAddresses: Set this flag to true if you want to parse new addresses with 12 characters instead of the default 6. New addresses parsing is very slow.
+    startingUrl: Define the starting URL for parsing. If omitted, the script will use a random URL generator, otherwise uses contractor Url 
 
 ### Disclaimer
 
