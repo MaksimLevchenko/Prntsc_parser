@@ -23,9 +23,18 @@ class LightshotParser{
       final sourceCode = responseFromSite.body;
       final RegExp imgPattern = RegExp(r'https.*((png)|(jpg)|(jpeg))');
 
-      if (responseFromSite.statusCode != 200) {
-        throw Exception('Can\'t reach server : ${responseFromSite.statusCode}');
+      switch (responseFromSite.statusCode){
+        case 503:
+          await Future.delayed(Duration(seconds: 10));
+          throw Exception('Server wants to ban you. Waiting');
+        case 403:
+          throw Exception('We got banned');
+        case 200:
+          break;
+        default:
+          throw Exception('Can\'t reach server : ${responseFromSite.statusCode}');
       }
+
 
       //looking for a direct address to the file
       var imageStringUrl = imgPattern.stringMatch(sourceCode);
@@ -91,7 +100,6 @@ class LightshotParser{
     for (num i = 0; i < numOfPhotos;){
       i += await getImage(getUrl.current);
       getUrl.moveNext();
-      await Future.delayed(Duration(milliseconds: 70));
     }
     print("Successfully downloaded $numOfPhotos photos");
   }
