@@ -5,7 +5,7 @@ void main() async {
   var parser = LightshotParser();
 
   parser.parse(
-      numOfPhotos: 500,
+      numOfPhotos: 1000,
       newAddresses: false,
       startingUrl: ''
   );
