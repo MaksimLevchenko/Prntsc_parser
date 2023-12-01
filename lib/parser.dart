@@ -2,9 +2,12 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import "dart:core";
 import 'url_generators.dart' as gen;
+import 'parser_db.dart' as db;
 
 
 class LightshotParser {
+  final database = db.DataBase();
+
   LightshotParser() {
     // It is necessary in order not to be banned immediately
     HttpClient client = HttpClient();
@@ -23,9 +26,9 @@ class LightshotParser {
       switch (responseFromSite.statusCode) {
         case 503:
           await Future.delayed(Duration(seconds: 10));
-          throw Exception('Server wants to ban you. Waiting');
+          throw Exception('Server wants to ban this IP. Waiting');
         case 403:
-          throw Exception('We got banned');
+          throw Exception('IP got banned');
         case 200:
           break;
         default:
@@ -33,7 +36,6 @@ class LightshotParser {
               'Can\'t reach server : ${responseFromSite.statusCode}');
       }
       final sourceCode = responseFromSite.body;
-
 
       //looking for a direct address to the file
       var imageStringUrl = imgPattern.stringMatch(sourceCode);
@@ -64,9 +66,10 @@ class LightshotParser {
 
       //Download the photo
       await File(
-              'Photos/${imageUrl.pathSegments[imageUrl.
-              pathSegments.length - 1]}')
-          .writeAsBytes(responseFromImg.bodyBytes);
+          'Photos/'
+          '${url.pathSegments[url.pathSegments.length - 1]}'
+          '${imageStringUrl.substring(imageStringUrl.lastIndexOf('.'))}'
+      ).writeAsBytes(responseFromImg.bodyBytes);
 
       print('file $imageStringUrl from $url downloaded successful');
       return 1;
@@ -78,11 +81,11 @@ class LightshotParser {
 
   /// Start parsing
   ///
-  /// Downloads numOfPhotos in new if newAddresses urls
-  /// starting from startingUrl. If startingUrl == '' uses random Url generator
-  /// otherwise - contractor Url generator
+  /// Downloads numOfImages in new if newAddresses urls
+  /// starting from startingUrl. If startingUrl == '' uses random Url
+  /// iterator, otherwise - contractor Url iterator
   void parse(
-      {int numOfPhotos = 100,
+      {int numOfImages = 100,
       bool newAddresses = false,
       String startingUrl = ''}) async {
     var getUrl = startingUrl == ''
@@ -90,11 +93,17 @@ class LightshotParser {
         : gen.GetNextUrl(newAddresses, startingUrl);
 
     // delay is necessary in order not to be banned
-    for (num i = 0; i < numOfPhotos;){
+    for (num i = 0; i < numOfImages;){
+      if (database.urlInDb(getUrl.current)) {
+        print('The photo ${getUrl.current} is already downloaded');
+        getUrl.moveNext();
+        continue;
+      }
       i += await getImage(getUrl.current);
+      database.addUrlRecord(getUrl.current);
       getUrl.moveNext();
     }
-    print("Successfully downloaded $numOfPhotos photos");
+    print("Successfully downloaded $numOfImages photos");
   }
 }
 
