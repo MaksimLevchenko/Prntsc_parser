@@ -95,7 +95,7 @@ class LightshotParser {
     // delay is necessary in order not to be banned
     for (num i = 0; i < numOfImages;){
       if (database.urlInDb(getUrl.current)) {
-        print('The photo ${getUrl.current} is already downloaded');
+        print('The page ${getUrl.current} is already checked');
         getUrl.moveNext();
         continue;
       }

@@ -4,16 +4,14 @@ import 'dart:math';
 /// Generates contractor Urls starting from stringUrl
 class GetNextUrl implements Iterator<Uri>{
   late bool newAddresses;
-  late final String _possibleSymbolsInOldUrl;
-  late final String _possibleSymbolsInNewUrl;
+  final String _possibleSymbolsInOldUrl = "abcdefghijklmnopqrstuvwxyz1234567890";
+  final String _possibleSymbolsInNewUrl = "abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ_-";
   late final String _usingSymbols;
   late final int _numberOfSymbols;
   late List<int> _charsNumbers;
   late String _stringUrl;
 
   GetNextUrl([this.newAddresses = false, stringUrl]){
-    _possibleSymbolsInOldUrl = "abcdefghijklmnopqrstuvwxyz1234567890";
-    _possibleSymbolsInNewUrl = "${_possibleSymbolsInOldUrl}ABCDEFGHIJKLMNOPQRSTUVWXYZ_-";
     _usingSymbols = newAddresses
         ? _possibleSymbolsInNewUrl
         : _possibleSymbolsInOldUrl;
@@ -54,15 +52,13 @@ class GetNextUrl implements Iterator<Uri>{
 ///Generates random Url
 class GetRandomUrl implements Iterator<Uri>{
   late bool newAddresses;
-  late final String _possibleSymbolsInOldUrl;
-  late final String _possibleSymbolsInNewUrl;
+  final String _possibleSymbolsInOldUrl = "abcdefghijklmnopqrstuvwxyz1234567890";
+  final String _possibleSymbolsInNewUrl = "abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ_-";
   late final String _usingSymbols;
   late final int _numberOfSymbols;
   late String _stringUrl;
 
   GetRandomUrl([this.newAddresses = false]){
-    _possibleSymbolsInOldUrl = "abcdefghijklmnopqrstuvwxyz1234567890";
-    _possibleSymbolsInNewUrl = "${_possibleSymbolsInOldUrl}ABCDEFGHIJKLMNOPQRSTUVWXYZ_-";
     _usingSymbols = newAddresses
         ? _possibleSymbolsInNewUrl
         : _possibleSymbolsInOldUrl;
