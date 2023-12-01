@@ -18,7 +18,13 @@ class GetNextUrl implements Iterator<Uri>{
     _numberOfSymbols = newAddresses ? 12 : 6;
     _stringUrl = stringUrl;
     if (_stringUrl.length != _numberOfSymbols) {
-      _stringUrl = List<String>.filled(_numberOfSymbols, 'q').join('');
+      _stringUrl = List<String>.filled(_numberOfSymbols, 'a').join('');
+    }
+    for (int i = 0; i < _numberOfSymbols; i++){
+      if (!_usingSymbols.contains(_stringUrl[i])){
+        _stringUrl = List<String>.filled(_numberOfSymbols, 'a').join('');
+        break;
+      }
     }
     _charsNumbers = charsFromString(_stringUrl);
   }
